@@ -356,10 +356,21 @@ for i in range(max_iter):
         "iteration": i + 1,
         "d_avg": d_avg,
         "angles": current_angles.copy(),
+        "ds": d_values.copy()
     })
 
 best_iteration = min(iteration_history, key=lambda x: x["d_avg"])
 print("Best iteration: {}".format(best_iteration))
+
+# Save best iteration d-values to CSV with labels
+filename_timestamp = time.strftime("%Y%m%d_%H%M%S")
+best_csv_file = f"best_iteration_ds_{filename_timestamp}.csv"
+with open(best_csv_file, "w", newline="") as csv_file:
+    csv_file.write("label,value\n")
+    for label, value in best_iteration["ds"].items():
+        csv_file.write(f"{label},{value}\n")
+print(f"Saved best iteration ds values to {best_csv_file}")
+
 if best_iteration["iteration"] != len(iteration_history):
     best_angles = best_iteration["angles"]
     current_tcp_pose = rtde_r.getActualTCPPose()
@@ -384,11 +395,14 @@ plt.xlabel("Iteration")
 plt.ylabel("d_avg (mm)")
 plt.grid(True)
 plt.tight_layout()
-filename_timestamp = time.strftime("%Y%m%d_%H%M%S")
 output_file = f"d_avg_history_{filename_timestamp}.png"
 plt.savefig(output_file)
 print(f"Saved d_avg plot to {output_file}")
 plt.close()
+
+
+
+correct_eye_position()
 
 rtde_c.disconnect()
 rtde_r.disconnect()
