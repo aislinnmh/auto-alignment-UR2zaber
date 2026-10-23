@@ -100,7 +100,6 @@ for i in range(max_iter):
     dy = y_5 - y5
     if abs(dy) > tol:
         d_theta = dy/10 # radians, small angle approx.
-        # d_theta = d_theta *0.125
         ry = ry - d_theta
         
     # Adjust robot rotation
@@ -133,7 +132,6 @@ for i in range(max_iter):
     dz = z_5 - z5
     if abs(dz) > tol:
         d_theta = dz/10 # radians, small angle approx.
-        # d_theta = d_theta  *0.125
         rz = rz - d_theta
 
     # Adjust robot rotation
@@ -336,8 +334,6 @@ for i in range(max_iter):
     correct_eye_position()
 
     d_values = {
-        "dx": dx,
-        "dy": dy,
         "dy1": dy1,
         "dz1": dz1,
         "dx1": dx1,
@@ -371,8 +367,8 @@ with open(best_csv_file, "w", newline="") as csv_file:
         csv_file.write(f"{label},{value}\n")
 print(f"Saved best iteration ds values to {best_csv_file}")
 
+best_angles = best_iteration["angles"]
 if best_iteration["iteration"] != len(iteration_history):
-    best_angles = best_iteration["angles"]
     current_tcp_pose = rtde_r.getActualTCPPose()
     target_tcp_pose = [
         current_tcp_pose[0],
@@ -400,12 +396,38 @@ plt.savefig(output_file)
 print(f"Saved d_avg plot to {output_file}")
 plt.close()
 
-
-
 correct_eye_position()
+
+# Ask whether final AngularScan3DRAOCT setup is needed. If so, retrieve input values
+convert_for_angular_scan = ""
+while convert_for_angular_scan not in ("y", "n"):
+    convert_for_angular_scan = input("Are you going to use AngularScan3DRAOCT? (y/n): ").strip().lower()
+
+if convert_for_angular_scan == "y":
+    print("Switch robot to local mode and run rotvec2rpy to get roll, pitch, yaw of aligned position")
+    roll = float(input("Enter roll (radians): "))
+    pitch = float(input("Enter pitch (radians): "))
+    yaw = float(input("Enter yaw (radians): "))
+
+    axes_pitch = roll - 1.568
+    axes_roll = pitch - 0.00639
+    axes_yaw = yaw - 0.00125
+
+    print(f"Calculated axes pitch: {axes_pitch:.6f}, roll: {axes_roll:.6f}, yaw: {axes_yaw:.6f}")
+
+    axes_csv_file = f"angular_scan_axes_{filename_timestamp}.csv"
+    with open(axes_csv_file, "w", newline="") as csv_file:
+        csv_file.write("axis,value\n")
+        csv_file.write(f"pitch,{axes_pitch}\n")
+        csv_file.write(f"roll,{axes_roll}\n")
+        csv_file.write(f"yaw,{axes_yaw}\n")
+    print(f"Saved AngularScan3DRAOCT axes values to {axes_csv_file}")
+else:
+    print("Axes are aligned")
 
 rtde_c.disconnect()
 rtde_r.disconnect()
+
 
 
 
