@@ -38,8 +38,8 @@ print("Initial TCP pose:", tcp_pose)
 # y = yAxis.get_position(Units.LENGTH_MILLIMETRES)
 # z = zAxis.get_position(Units.LENGTH_MILLIMETRES)
 
-print("Start pupil tracking in a Terminal with -a localhost")
-# print("2) Manually move the zaber stages such that the eye is approximately centered at pupil_center_m")
+print("1) Start pupil tracking in a Terminal with -a localhost")
+print("2) Manually move the zaber stages such that the eye is within 2 mm of the center")
 input("Press Enter to continue when complete...")
 
 # Set parameters
@@ -48,6 +48,7 @@ tol = 0.01 # mm
 
 
 def correct_eye_position():
+    # Moves eye to the center of the pupil tracking system with zaber stages
     dtol = 0.02;
     pos = get_pos(mode)
     d = np.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
@@ -58,10 +59,10 @@ def correct_eye_position():
         time.sleep(0.5)
         pos = get_pos(mode)
         d = np.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
-    print(f"pos = ({pos[0]:.2f}, {pos[1]:.2f}, {pos[2]:.2f})")
-
 
 correct_eye_position()
+
+iteration_history = []
 
 for i in range(max_iter):
 
@@ -98,7 +99,6 @@ for i in range(max_iter):
         d_theta = dy/10 # radians, small angle approx.
         # d_theta = d_theta *0.125
         ry = ry - d_theta
-        dry1 = d_theta
         
     # Adjust robot rotation
     rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], tcp_pose[3], ry, tcp_pose[5]], 0.125, 0.125, True)
@@ -132,7 +132,6 @@ for i in range(max_iter):
         d_theta = dz/10 # radians, small angle approx.
         # d_theta = d_theta  *0.125
         rz = rz - d_theta
-        drz1 = d_theta
 
     # Adjust robot rotation
     rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], tcp_pose[3], tcp_pose[4], rz], 0.125, 0.125, True)
@@ -165,7 +164,6 @@ for i in range(max_iter):
     if abs(dx) > tol:
         d_theta = dx/10 # radians, small angle approx.
         ry = ry + d_theta
-        dry2 = d_theta
     # Adjust robot rotation
     rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], tcp_pose[3], ry, tcp_pose[5]], 0.125, 0.125, True)
     correct_eye_position()
@@ -195,7 +193,6 @@ for i in range(max_iter):
     if abs(dz) > tol:
         d_theta = dz/10 # radians, small angle approx.
         rx = rx + d_theta
-        drx1 = d_theta
     # Adjust robot rotation
     rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], rx, tcp_pose[4], tcp_pose[5]], 0.125, 0.125, True)
     correct_eye_position()
@@ -227,7 +224,6 @@ for i in range(max_iter):
     if abs(dx) > tol:
         d_theta = dx/10 # radians, small angle approx.
         rz = rz + d_theta
-        drz1 = d_theta
     # Adjust robot rotation
     rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], tcp_pose[3], tcp_pose[4], rz], 0.125, 0.125, True)
     correct_eye_position()
@@ -257,13 +253,123 @@ for i in range(max_iter):
     if abs(dy) > tol:
         d_theta = dy/10 # radians, small angle approx.
         rx = rx - d_theta
-        drx1 = d_theta
     # Adjust robot rotation
     rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], rx, tcp_pose[4], tcp_pose[5]], 0.125, 0.125, True)
     correct_eye_position()
-    # Correct eye position if needed
-    # input("Manually fix eye position if needed, then press Enter to continue...")
 
+    # Check Iteration Error
+    xAxis.move_relative(5.0, Units.LENGTH_MILLIMETRES)
+    time.sleep(1)
+    pos = get_pos(mode)
+    y5 = pos[1]
+    xAxis.move_relative(-10.0, Units.LENGTH_MILLIMETRES)
+    time.sleep(1)
+    pos = get_pos(mode)
+    y_5 = pos[1]
+    xAxis.move_relative(5.0, Units.LENGTH_MILLIMETRES)
+    dy1 = y_5 - y5
+    correct_eye_position()
+
+    xAxis.move_relative(5.0, Units.LENGTH_MILLIMETRES)
+    time.sleep(1)
+    pos = get_pos(mode)
+    z5 = pos[2]
+    xAxis.move_relative(-10.0, Units.LENGTH_MILLIMETRES)
+    time.sleep(1)
+    pos = get_pos(mode)
+    z_5 = pos[2]
+    xAxis.move_relative(5.0, Units.LENGTH_MILLIMETRES)
+    dz1 = z_5 - z5
+    correct_eye_position()
+
+    # Y-axis: response in x for RY and z for RX
+    yAxis.move_relative(5.0, Units.LENGTH_MILLIMETRES)
+    time.sleep(1)
+    pos = get_pos(mode)
+    x5 = pos[0]
+    yAxis.move_relative(-10.0, Units.LENGTH_MILLIMETRES)
+    time.sleep(1)
+    pos = get_pos(mode)
+    x_5 = pos[0]
+    yAxis.move_relative(5.0, Units.LENGTH_MILLIMETRES)
+    dx1 = x_5 - x5
+    correct_eye_position()
+
+    yAxis.move_relative(5.0, Units.LENGTH_MILLIMETRES)
+    time.sleep(1)
+    pos = get_pos(mode)
+    z5 = pos[2]
+    yAxis.move_relative(-10.0, Units.LENGTH_MILLIMETRES)
+    time.sleep(1)
+    pos = get_pos(mode)
+    z_5 = pos[2]
+    yAxis.move_relative(5.0, Units.LENGTH_MILLIMETRES)
+    dz2 = z_5 - z5
+    correct_eye_position()
+
+    # Z-axis: response in x for RZ and y for RX
+    zAxis.move_relative(5.0, Units.LENGTH_MILLIMETRES)
+    time.sleep(1)
+    pos = get_pos(mode)
+    x5 = pos[0]
+    zAxis.move_relative(-10.0, Units.LENGTH_MILLIMETRES)
+    time.sleep(1)
+    pos = get_pos(mode)
+    x_5 = pos[0]
+    zAxis.move_relative(5.0, Units.LENGTH_MILLIMETRES)
+    dx2 = x_5 - x5
+    correct_eye_position()
+
+    zAxis.move_relative(5.0, Units.LENGTH_MILLIMETRES)
+    time.sleep(1)
+    pos = get_pos(mode)
+    y5 = pos[1]
+    zAxis.move_relative(-10.0, Units.LENGTH_MILLIMETRES)
+    time.sleep(1)
+    pos = get_pos(mode)
+    y_5 = pos[1]
+    zAxis.move_relative(5.0, Units.LENGTH_MILLIMETRES)
+    dy2 = y_5 - y5
+    correct_eye_position()
+
+    d_values = {
+        "dx": dx,
+        "dy": dy,
+        "dy1": dy1,
+        "dz1": dz1,
+        "dx1": dx1,
+        "dz2": dz2,
+        "dx2": dx2,
+        "dy2": dy2,
+    }
+    for label, value in d_values.items():
+        print(f"{label}: {value:.2f}")
+    d_avg = sum(abs(value) for value in d_values.values()) / len(d_values)
+    print(f"Average absolute d: {d_avg:.3f}")
+
+    tcp_pose = rtde_r.getActualTCPPose()
+    current_angles = [tcp_pose[3], tcp_pose[4], tcp_pose[5]]
+    iteration_history.append({
+        "iteration": i + 1,
+        "d_avg": d_avg,
+        "angles": current_angles.copy(),
+    })
+
+best_iteration = min(iteration_history, key=lambda x: x["d_avg"])
+print("Best iteration: {}".format(best_iteration))
+if best_iteration["iteration"] != len(iteration_history):
+    best_angles = best_iteration["angles"]
+    current_tcp_pose = rtde_r.getActualTCPPose()
+    target_tcp_pose = [
+        current_tcp_pose[0],
+        current_tcp_pose[1],
+        current_tcp_pose[2],
+        best_angles[0],
+        best_angles[1],
+        best_angles[2],
+    ]
+    print(f"Moving robot to best iteration {best_iteration['iteration']} angles: {best_angles}")
+    rtde_c.moveL(target_tcp_pose, 0.125, 0.125, True)
 
 rtde_c.disconnect()
 rtde_r.disconnect()
