@@ -5,6 +5,9 @@
 
 import numpy as np
 import time
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 
 # Set up robot communication
 from rtde_control import RTDEControlInterface as RTDEControl
@@ -43,7 +46,7 @@ print("2) Manually move the zaber stages such that the eye is within 2 mm of the
 input("Press Enter to continue when complete...")
 
 # Set parameters
-max_iter = 10
+max_iter = 20
 tol = 0.01 # mm
 
 
@@ -370,6 +373,22 @@ if best_iteration["iteration"] != len(iteration_history):
     ]
     print(f"Moving robot to best iteration {best_iteration['iteration']} angles: {best_angles}")
     rtde_c.moveL(target_tcp_pose, 0.125, 0.125, True)
+
+# Plot d_avg over all iterations
+iterations = [entry["iteration"] for entry in iteration_history]
+d_history = [entry["d_avg"] for entry in iteration_history]
+plt.figure()
+plt.plot(iterations, d_history, marker='o', linestyle='-')
+plt.title("Average displacement per iteration")
+plt.xlabel("Iteration")
+plt.ylabel("d_avg (mm)")
+plt.grid(True)
+plt.tight_layout()
+filename_timestamp = time.strftime("%Y%m%d_%H%M%S")
+output_file = f"d_avg_history_{filename_timestamp}.png"
+plt.savefig(output_file)
+print(f"Saved d_avg plot to {output_file}")
+plt.close()
 
 rtde_c.disconnect()
 rtde_r.disconnect()
