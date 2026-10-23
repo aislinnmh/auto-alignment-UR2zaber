@@ -2,8 +2,8 @@
 
 import time
 import matplotlib
+import numpy as np
 
-from align_axes import correct_eye_position
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
@@ -24,7 +24,20 @@ yAxis = device3.get_axis(1)
 from position_tracking import get_pos 
 mode = "pupil" # or "pitag"
 
-# Check Iteration Error
+def correct_eye_position():
+    # Moves eye to the center of the pupil tracking system with zaber stages
+    dtol = 0.02;
+    pos = get_pos(mode)
+    d = np.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
+    while d > dtol:
+        xAxis.move_relative(pos[0], Units.LENGTH_MILLIMETRES)
+        yAxis.move_relative(pos[1], Units.LENGTH_MILLIMETRES)
+        zAxis.move_relative(pos[2], Units.LENGTH_MILLIMETRES)
+        time.sleep(0.5)
+        pos = get_pos(mode)
+        d = np.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
+
+# Check Current Error
 xAxis.move_relative(5.0, Units.LENGTH_MILLIMETRES)
 time.sleep(1)
 pos = get_pos(mode)

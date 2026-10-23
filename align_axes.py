@@ -49,7 +49,6 @@ input("Press Enter to continue when complete...")
 max_iter = 20
 tol = 0.01 # mm
 
-
 def correct_eye_position():
     # Moves eye to the center of the pupil tracking system with zaber stages
     dtol = 0.02;
