@@ -38,13 +38,30 @@ print("Initial TCP pose:", tcp_pose)
 # y = yAxis.get_position(Units.LENGTH_MILLIMETRES)
 # z = zAxis.get_position(Units.LENGTH_MILLIMETRES)
 
-print("1) Start pupil tracking in a Terminal with -a localhost")
-print("2) Manually move the zaber stages such that the eye is approximately centered at pupil_center_m")
-input("Press Enter to continue when these two steps are complete...")
+print("Start pupil tracking in a Terminal with -a localhost")
+# print("2) Manually move the zaber stages such that the eye is approximately centered at pupil_center_m")
+input("Press Enter to continue when complete...")
 
 # Set parameters
 max_iter = 10
 tol = 0.01 # mm
+
+
+def correct_eye_position():
+    dtol = 0.02;
+    pos = get_pos(mode)
+    d = np.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
+    while d > dtol:
+        xAxis.move_relative(pos[0], Units.LENGTH_MILLIMETRES)
+        yAxis.move_relative(pos[1], Units.LENGTH_MILLIMETRES)
+        zAxis.move_relative(pos[2], Units.LENGTH_MILLIMETRES)
+        time.sleep(0.5)
+        pos = get_pos(mode)
+        d = np.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
+    print(f"pos = ({pos[0]:.2f}, {pos[1]:.2f}, {pos[2]:.2f})")
+
+
+correct_eye_position()
 
 for i in range(max_iter):
 
@@ -79,13 +96,13 @@ for i in range(max_iter):
     dy = y_5 - y5
     if abs(dy) > tol:
         d_theta = dy/10 # radians, small angle approx.
-        # d_theta = d_theta *0.5
+        # d_theta = d_theta *0.125
         ry = ry - d_theta
         dry1 = d_theta
         
     # Adjust robot rotation
-    rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], tcp_pose[3], ry, tcp_pose[5]], 0.5, 0.5, True)
-    # input("Manually fix eye position if needed, then press Enter to continue...")
+    rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], tcp_pose[3], ry, tcp_pose[5]], 0.125, 0.125, True)
+    correct_eye_position()
 
 
 
@@ -113,15 +130,13 @@ for i in range(max_iter):
     dz = z_5 - z5
     if abs(dz) > tol:
         d_theta = dz/10 # radians, small angle approx.
-        # d_theta = d_theta  *0.5
+        # d_theta = d_theta  *0.125
         rz = rz - d_theta
         drz1 = d_theta
 
     # Adjust robot rotation
-    rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], tcp_pose[3], tcp_pose[4], rz], 0.5, 0.5, True)
-
-    # Correct eye position if needed
-    # input("Manually fix eye position if needed, then press Enter to continue...")
+    rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], tcp_pose[3], tcp_pose[4], rz], 0.125, 0.125, True)
+    correct_eye_position()
 
     ## Y-AXIS ALIGNMENT
 
@@ -152,8 +167,8 @@ for i in range(max_iter):
         ry = ry + d_theta
         dry2 = d_theta
     # Adjust robot rotation
-    rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], tcp_pose[3], ry, tcp_pose[5]], 0.5, 0.5, True)
-    # input("Manually fix eye position if needed, then press Enter to continue...")
+    rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], tcp_pose[3], ry, tcp_pose[5]], 0.125, 0.125, True)
+    correct_eye_position()
 
     ## RX rotation
     # Get current relative rotations
@@ -182,9 +197,8 @@ for i in range(max_iter):
         rx = rx + d_theta
         drx1 = d_theta
     # Adjust robot rotation
-    rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], rx, tcp_pose[4], tcp_pose[5]], 0.5, 0.5, True)
-    # Correct eye position if needed
-    # input("Manually fix eye position if needed, then press Enter to continue...")
+    rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], rx, tcp_pose[4], tcp_pose[5]], 0.125, 0.125, True)
+    correct_eye_position()
     
     ## Z-AXIS ALIGNMENT
 
@@ -215,8 +229,8 @@ for i in range(max_iter):
         rz = rz + d_theta
         drz1 = d_theta
     # Adjust robot rotation
-    rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], tcp_pose[3], tcp_pose[4], rz], 0.5, 0.5, True)
-    # input("Manually fix eye position if needed, then press Enter to continue...")
+    rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], tcp_pose[3], tcp_pose[4], rz], 0.125, 0.125, True)
+    correct_eye_position()
 
     ## RX rotation
     # Get current relative rotations
@@ -245,7 +259,8 @@ for i in range(max_iter):
         rx = rx - d_theta
         drx1 = d_theta
     # Adjust robot rotation
-    rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], rx, tcp_pose[4], tcp_pose[5]], 0.5, 0.5, True)
+    rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], rx, tcp_pose[4], tcp_pose[5]], 0.125, 0.125, True)
+    correct_eye_position()
     # Correct eye position if needed
     # input("Manually fix eye position if needed, then press Enter to continue...")
 
