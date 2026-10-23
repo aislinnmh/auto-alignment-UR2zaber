@@ -3,7 +3,7 @@
 import time
 import matplotlib
 
-from main import correct_eye_position
+from align_axes import correct_eye_position
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
