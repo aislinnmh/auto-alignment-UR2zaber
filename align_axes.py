@@ -46,7 +46,7 @@ print("2) Manually move the zaber stages such that the eye is within 2 mm of the
 input("Press Enter to continue when complete...")
 
 # Set parameters
-max_iter = 20
+max_iter = 50
 tol = 0.01 # mm
 
 def correct_eye_position():
@@ -58,7 +58,7 @@ def correct_eye_position():
         xAxis.move_relative(pos[0], Units.LENGTH_MILLIMETRES)
         yAxis.move_relative(pos[1], Units.LENGTH_MILLIMETRES)
         zAxis.move_relative(pos[2], Units.LENGTH_MILLIMETRES)
-        time.sleep(0.5)
+        time.sleep(1)
         pos = get_pos(mode)
         d = np.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
 
@@ -72,7 +72,6 @@ for i in range(max_iter):
 
     ## X-AXIS ALIGNMENT
    
-    
     ## RY rotation
     # Get current relative rotations
     tcp_pose = rtde_r.getActualTCPPose()
@@ -99,12 +98,13 @@ for i in range(max_iter):
     dy = y_5 - y5
     if abs(dy) > tol:
         d_theta = dy/10 # radians, small angle approx.
+        # d_theta = d_theta*0.75
         ry = ry - d_theta
         
     # Adjust robot rotation
     rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], tcp_pose[3], ry, tcp_pose[5]], 0.125, 0.125, True)
+    time.sleep(1)
     correct_eye_position()
-
 
 
     ## RZ rotation
@@ -131,10 +131,12 @@ for i in range(max_iter):
     dz = z_5 - z5
     if abs(dz) > tol:
         d_theta = dz/10 # radians, small angle approx.
+        # d_theta = d_theta*0.75
         rz = rz - d_theta
 
     # Adjust robot rotation
     rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], tcp_pose[3], tcp_pose[4], rz], 0.125, 0.125, True)
+    time.sleep(1)
     correct_eye_position()
 
     ## Y-AXIS ALIGNMENT
@@ -163,9 +165,11 @@ for i in range(max_iter):
     dx = x_5 - x5
     if abs(dx) > tol:
         d_theta = dx/10 # radians, small angle approx.
+        # d_theta = d_theta*0.75
         ry = ry + d_theta
     # Adjust robot rotation
     rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], tcp_pose[3], ry, tcp_pose[5]], 0.125, 0.125, True)
+    time.sleep(1)
     correct_eye_position()
 
     ## RX rotation
@@ -191,10 +195,12 @@ for i in range(max_iter):
     # Calculate differences in pupil position and the corresponding rotation adjustments
     dz = z_5 - z5
     if abs(dz) > tol:
-        d_theta = dz/10 # radians, small angle approx.
+        d_theta = dz/10 # radians, small angle approx.\
+        # d_theta = d_theta*0.75
         rx = rx + d_theta
     # Adjust robot rotation
     rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], rx, tcp_pose[4], tcp_pose[5]], 0.125, 0.125, True)
+    time.sleep(1)
     correct_eye_position()
     
     ## Z-AXIS ALIGNMENT
@@ -223,9 +229,11 @@ for i in range(max_iter):
     dx = x_5 - x5
     if abs(dx) > tol:
         d_theta = dx/10 # radians, small angle approx.
+        # d_theta = d_theta*0.75
         rz = rz + d_theta
     # Adjust robot rotation
     rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], tcp_pose[3], tcp_pose[4], rz], 0.125, 0.125, True)
+    time.sleep(1)
     correct_eye_position()
 
     ## RX rotation
@@ -252,9 +260,11 @@ for i in range(max_iter):
     dy = y_5 - y5
     if abs(dy) > tol:
         d_theta = dy/10 # radians, small angle approx.
+        # d_theta = d_theta*0.75
         rx = rx - d_theta
     # Adjust robot rotation
     rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], rx, tcp_pose[4], tcp_pose[5]], 0.125, 0.125, True)
+    time.sleep(1)
     correct_eye_position()
 
     # Check Iteration Error
@@ -353,7 +363,7 @@ for i in range(max_iter):
         "angles": current_angles.copy(),
         "ds": d_values.copy()
     })
-
+    
 best_iteration = min(iteration_history, key=lambda x: x["d_avg"])
 print("Best iteration: {}".format(best_iteration))
 

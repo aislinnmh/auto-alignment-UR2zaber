@@ -37,6 +37,8 @@ def correct_eye_position():
         pos = get_pos(mode)
         d = np.sqrt(pos[0]**2 + pos[1]**2 + pos[2]**2)
 
+correct_eye_position()
+
 # Check Current Error
 xAxis.move_relative(5.0, Units.LENGTH_MILLIMETRES)
 time.sleep(1)
