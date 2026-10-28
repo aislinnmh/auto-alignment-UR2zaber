@@ -52,11 +52,28 @@ def get_pos(tracking_mode="pupil"):
         else:
             eye_position_3d = None
 
+        (flag,) = struct.unpack_from('<?', data, offset)
+        offset += struct.calcsize('<?')
+
+        if flag:
+            eye_visual_axis = struct.unpack_from('<ddd', data, offset)
+            offset += struct.calcsize('<ddd')
+            eye_optical_axis = struct.unpack_from('<ddd', data, offset)
+            offset += struct.calcsize('<ddd')
+        else:
+            eye_optical_axis = None
+
     if eye_position_3d is not None:
         x = eye_position_3d[0] * 1000  # Convert from meters to millimeters
         y = eye_position_3d[1] * 1000
         z = eye_position_3d[2] * 1000
         pos = [x, y, z]
+        if tracking_mode == "pitag":
+            if eye_optical_axis is not None:
+                yaw = eye_optical_axis[0]
+                pitch = eye_optical_axis[1]
+                roll = eye_optical_axis[2]
+                pos = [x,y,z,yaw,pitch,roll]
     else:
         pos = None
 
