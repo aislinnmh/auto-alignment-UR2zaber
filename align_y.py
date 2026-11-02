@@ -78,6 +78,7 @@ for i in range(max_iter):
     # Get current relative rotations
     tcp_pose = rtde_r.getActualTCPPose()
     ry = tcp_pose[4]
+    rz = tcp_pose[5]
     # Move to start position, +5 mm
     yAxis.move_relative(5.0, Units.LENGTH_MILLIMETRES)
     # Record pupil position
@@ -99,9 +100,11 @@ for i in range(max_iter):
     if abs(dx) > tol:
         d_theta = dx/10 # radians, small angle approx.
         # d_theta = d_theta*0.75
-        ry = ry + d_theta
+        dr = d_theta/np.sqrt(2)
+        ry = ry + dr
+        rz = rz - dr
     # Adjust robot rotation
-    rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], tcp_pose[3], ry, tcp_pose[5]], 0.125, 0.125, True)
+    rtde_c.moveL([tcp_pose[0], tcp_pose[1], tcp_pose[2], tcp_pose[3], ry, rz], 0.125, 0.125, True)
     time.sleep(1)
     correct_eye_position()
 
